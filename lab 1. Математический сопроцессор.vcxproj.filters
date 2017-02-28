@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="view">
+      <UniqueIdentifier>{4ec1f259-ba6c-4159-b20a-69195596128a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="view\source">
+      <UniqueIdentifier>{f3da9c06-ddac-486c-8651-52716c4ea2ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="view\header">
+      <UniqueIdentifier>{ed2404fc-2034-423f-9b93-59bff12e8ed3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MyLibrary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="view\StreamInput.cpp">
+      <Filter>view\source</Filter>
+    </ClCompile>
+    <ClCompile Include="view\StreamOutput.cpp">
+      <Filter>view\source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MyLibrary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="view\StreamInput.h">
+      <Filter>view\header</Filter>
+    </ClInclude>
+    <ClInclude Include="view\StreamOutput.h">
+      <Filter>view\header</Filter>
+    </ClInclude>
+    <ClInclude Include="view\view.h">
+      <Filter>view\header</Filter>
+    </ClInclude>
+    <ClInclude Include="timers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
