@@ -1,7 +1,6 @@
-#pragma once
+п»ї#pragma once
 
-//для .cpp и не только
-//#include <cmath>
+//РґР»СЏ .cpp Рё РЅРµ С‚РѕР»СЊРєРѕ
 #include "view/view.h"
 #include "timers.h"
 #include "random.h"
@@ -11,13 +10,13 @@
 
 typedef unsigned char byte;
 
-//основная функция
+//РѕСЃРЅРѕРІРЅР°СЏ С„СѓРЅРєС†РёСЏ
 void defaultFunction();
 
-//конец программы
+//РєРѕРЅРµС† РїСЂРѕРіСЂР°РјРјС‹
 inline void programEnd()
 {
-	std::cout <<  "Программа завершила свою работу. Для выхода введите любой символ" << std::endl;
+	std::cout <<  "РџСЂРѕРіСЂР°РјРјР° Р·Р°РІРµСЂС€РёР»Р° СЃРІРѕСЋ СЂР°Р±РѕС‚Сѓ. Р”Р»СЏ РІС‹С…РѕРґР° РІРІРµРґРёС‚Рµ Р»СЋР±РѕР№ СЃРёРјРІРѕР»" << std::endl;
 	PauseConsole();
 }
 

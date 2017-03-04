@@ -1,4 +1,4 @@
-//вычисления от a до b с шагом d
+п»ї//РІС‹С‡РёСЃР»РµРЅРёСЏ РѕС‚ a РґРѕ b СЃ С€Р°РіРѕРј d
 //17. F(x) = sin(x)*tg(x+5)
 
 #include "MyLibrary.h"
@@ -12,23 +12,23 @@ void defaultFunction()
 
 	double begin, end, gap;
 
-	OutputConsole("Введите первое рассчитываемое значение");
+	OutputConsole("Р’РІРµРґРёС‚Рµ РїРµСЂРІРѕРµ СЂР°СЃСЃС‡РёС‚С‹РІР°РµРјРѕРµ Р·РЅР°С‡РµРЅРёРµ");
 	Input(begin);
 
-	OutputConsole("Введите последнее рассчитываемое значение");
+	OutputConsole("Р’РІРµРґРёС‚Рµ РїРѕСЃР»РµРґРЅРµРµ СЂР°СЃСЃС‡РёС‚С‹РІР°РµРјРѕРµ Р·РЅР°С‡РµРЅРёРµ");
 	Input(end);
 
 	do
 	{
-		OutputConsole("Введите шаг");
+		OutputConsole("Р’РІРµРґРёС‚Рµ С€Р°Рі");
 		Input(gap);
 	} while (gap <= 0);
 
 	TIMER_T resSopr = Soproc(begin, end, gap);
 	TIMER_T resC = C_Only(begin, end, gap);
 
-	OutputConsole("Сопроцессор сработал за " + std::to_string((ull)resSopr) + " мс");
-	OutputConsole("С сработал за " + std::to_string((ull)resC) + " мс");
+	OutputConsole("РЎРѕРїСЂРѕС†РµСЃСЃРѕСЂ СЃСЂР°Р±РѕС‚Р°Р» Р·Р° " + std::to_string((ull)resSopr) + " РјСЃ");
+	OutputConsole("РЎ СЃСЂР°Р±РѕС‚Р°Р» Р·Р° " + std::to_string((ull)resC) + " РјСЃ");
 }
 
 TIMER_T Soproc(const double& start, const double& end, const double& gap)
@@ -63,7 +63,7 @@ TIMER_T Soproc(const double& start, const double& end, const double& gap)
 
 	END_TIMER
 
-	OutputConsole("Последний результат из сопроцессора: " + std::to_string(lastRes));
+	OutputConsole("РџРѕСЃР»РµРґРЅРёР№ СЂРµР·СѓР»СЊС‚Р°С‚ РёР· СЃРѕРїСЂРѕС†РµСЃСЃРѕСЂР°: " + std::to_string(lastRes));
 	//OutputConsole("RES SOPR: " + std::to_string((ull)RES_TIMER));
 
 	return RES_TIMER;
@@ -82,7 +82,7 @@ TIMER_T C_Only(const double& start, const double& end, const double& gap)
 
 	END_TIMER
 
-	OutputConsole("Последний результат из С: " + std::to_string(lastRes));
+	OutputConsole("РџРѕСЃР»РµРґРЅРёР№ СЂРµР·СѓР»СЊС‚Р°С‚ РёР· РЎ: " + std::to_string(lastRes));
 	//OutputConsole("RES C: " + std::to_string((ull)RES_TIMER));
 
 	return RES_TIMER;

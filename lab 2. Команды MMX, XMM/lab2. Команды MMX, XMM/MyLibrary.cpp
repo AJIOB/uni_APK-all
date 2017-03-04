@@ -1,4 +1,4 @@
-//2. Вычисление матричного  выражения  A = B + kC, где A, B, C – матрицы, k – скалярный множитель.
+п»ї//2. Р’С‹С‡РёСЃР»РµРЅРёРµ РјР°С‚СЂРёС‡РЅРѕРіРѕ  РІС‹СЂР°Р¶РµРЅРёСЏ  A = B + kC, РіРґРµ A, B, C вЂ“ РјР°С‚СЂРёС†С‹, k вЂ“ СЃРєР°Р»СЏСЂРЅС‹Р№ РјРЅРѕР¶РёС‚РµР»СЊ.
 
 #include "MyLibrary.h"
 
@@ -11,14 +11,14 @@ void defaultFunction()
 	init(B);
 	init(C);
 
-	OutputConsole("Введите скалярный множитель");
+	OutputConsole("Р’РІРµРґРёС‚Рµ СЃРєР°Р»СЏСЂРЅС‹Р№ РјРЅРѕР¶РёС‚РµР»СЊ");
 	Input(k);
 
 	TIMER_T resAsm = Asm(A, B, C, k);
 	TIMER_T resC = C_Only(A, B, C, k);
 
-	OutputConsole("Ассемблер сработал за " + std::to_string(resAsm) + " мс");
-	OutputConsole("С сработал за " + std::to_string(resC) + " мс");
+	OutputConsole("РђСЃСЃРµРјР±Р»РµСЂ СЃСЂР°Р±РѕС‚Р°Р» Р·Р° " + std::to_string(resAsm) + " РјСЃ");
+	OutputConsole("РЎ СЃСЂР°Р±РѕС‚Р°Р» Р·Р° " + std::to_string(resC) + " РјСЃ");
 }
 
 void init(byte A[SIZE_ROW][SIZE_COLUMN])
@@ -61,7 +61,7 @@ TIMER_T Asm(byte A[SIZE_ROW][SIZE_COLUMN], const byte B[SIZE_ROW][SIZE_COLUMN], 
 
 	END_TIMER
 
-	OutputConsole("Последний результат из сопроцессора: " + std::to_string(lastRes));
+	OutputConsole("РџРѕСЃР»РµРґРЅРёР№ СЂРµР·СѓР»СЊС‚Р°С‚ РёР· СЃРѕРїСЂРѕС†РµСЃСЃРѕСЂР°: " + std::to_string(lastRes));
 	OutputConsole("RES SOPR: " + std::to_string(RES_TIMER));
 
 	return RES_TIMER;
@@ -99,7 +99,7 @@ TIMER_T Asm(const double& start, const double& end, const double& gap)
 
 	END_TIMER
 
-	OutputConsole("Последний результат из сопроцессора: " + std::to_string(lastRes));
+	OutputConsole("РџРѕСЃР»РµРґРЅРёР№ СЂРµР·СѓР»СЊС‚Р°С‚ РёР· СЃРѕРїСЂРѕС†РµСЃСЃРѕСЂР°: " + std::to_string(lastRes));
 	OutputConsole("RES SOPR: " + std::to_string(RES_TIMER));
 
 	return RES_TIMER;
@@ -121,7 +121,7 @@ TIMER_T C_Only(byte A[SIZE_ROW][SIZE_COLUMN], const byte B[SIZE_ROW][SIZE_COLUMN
 
 	END_TIMER
 
-	OutputConsole("Последний результат из С: " + std::to_string((long long)lastRes));
+	OutputConsole("РџРѕСЃР»РµРґРЅРёР№ СЂРµР·СѓР»СЊС‚Р°С‚ РёР· РЎ: " + std::to_string((long long)lastRes));
 	OutputConsole("RES C: " + std::to_string(RES_TIMER));
 
 	return RES_TIMER;

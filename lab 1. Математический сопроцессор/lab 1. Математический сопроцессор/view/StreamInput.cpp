@@ -1,4 +1,4 @@
-#include "StreamInput.h"
+п»ї#include "StreamInput.h"
 
 char Stream::GetOnlyYN(const std::string& infoText)
 {
@@ -6,7 +6,7 @@ char Stream::GetOnlyYN(const std::string& infoText)
 
 	while (true)
 	{
-		OutputConsole(infoText +  " (Y - да, N - нет)");
+		OutputConsole(infoText +  " (Y - РґР°, N - РЅРµС‚)");
 		result = Stream::Get();
 
 		if (result == 'y' || (result == 'n'))
@@ -20,7 +20,7 @@ char Stream::GetOnlyYN(const std::string& infoText)
 			break;
 		}
 
-		OutputConsole("Извините, такой вариант не поддерживается. Пожалуйста, повторите ввод");
+		OutputConsole("РР·РІРёРЅРёС‚Рµ, С‚Р°РєРѕР№ РІР°СЂРёР°РЅС‚ РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ. РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РїРѕРІС‚РѕСЂРёС‚Рµ РІРІРѕРґ");
 	}
 
 	return result;
@@ -32,14 +32,14 @@ int Stream::InputEnum(const std::vector<std::string>& texts, int numOfTheFirstEl
 
 	while (true)
 	{
-		//демонстрация вариантов для выбора
-		std::cout << "Пожалуйста, введите цифру, соответсувующую вашему выбору:" << std::endl;
+		//РґРµРјРѕРЅСЃС‚СЂР°С†РёСЏ РІР°СЂРёР°РЅС‚РѕРІ РґР»СЏ РІС‹Р±РѕСЂР°
+		std::cout << "РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РІРІРµРґРёС‚Рµ С†РёС„СЂСѓ, СЃРѕРѕС‚РІРµС‚СЃСѓРІСѓСЋС‰СѓСЋ РІР°С€РµРјСѓ РІС‹Р±РѕСЂСѓ:" << std::endl;
 		for (long int i = numOfTheFirstElementToShow; i < static_cast<long int>(texts.size()); ++i)
 		{
 			std::cout << i << ": " << texts[i] << std::endl;
 		}
 
-		OutputConsole("Пожалуйста, сделайте свой выбор:");
+		OutputConsole("РџРѕР¶Р°Р»СѓР№СЃС‚Р°, СЃРґРµР»Р°Р№С‚Рµ СЃРІРѕР№ РІС‹Р±РѕСЂ:");
 
 		Input(result);
 
@@ -52,7 +52,7 @@ int Stream::InputEnum(const std::vector<std::string>& texts, int numOfTheFirstEl
 		Clear();
 		ClearConsole();
 
-		OutputWarning("Извините, такой вариант нельзя ввести. Пожалуйста, введите что-либо из нижепредложенных вариантов");
+		OutputWarning("РР·РІРёРЅРёС‚Рµ, С‚Р°РєРѕР№ РІР°СЂРёР°РЅС‚ РЅРµР»СЊР·СЏ РІРІРµСЃС‚Рё. РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РІРІРµРґРёС‚Рµ С‡С‚Рѕ-Р»РёР±Рѕ РёР· РЅРёР¶РµРїСЂРµРґР»РѕР¶РµРЅРЅС‹С… РІР°СЂРёР°РЅС‚РѕРІ");
 	}
 
 	return result;
@@ -85,11 +85,11 @@ std::string Stream::Getpass(const char* prompt, bool show_asterisk)
 
 			password.pop_back();
 
-			//переввод новых *
+			//РїРµСЂРµРІРІРѕРґ РЅРѕРІС‹С… *
 			if (show_asterisk)
 			{
 				std::cout << "\r";
-				//затирание старого пробела
+				//Р·Р°С‚РёСЂР°РЅРёРµ СЃС‚Р°СЂРѕРіРѕ РїСЂРѕР±РµР»Р°
 				for (auto i = 0; i <= password.size(); i++)
 				{
 					std::cout << " ";
