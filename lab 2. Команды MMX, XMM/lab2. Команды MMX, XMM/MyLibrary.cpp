@@ -6,117 +6,109 @@ void defaultFunction()
 {
 	using namespace Stream;
 
-	byte A[SIZE_ROW][SIZE_COLUMN], B[SIZE_ROW][SIZE_COLUMN], C[SIZE_ROW][SIZE_COLUMN], k;
+	byte k;
+	int k1;			//tmp to input
+
+	byte* A = new byte[SIZE_ROW*SIZE_COLUMN];
+	byte* B = new byte[SIZE_ROW*SIZE_COLUMN];
+	byte* C = new byte[SIZE_ROW*SIZE_COLUMN];
 
 	init(B);
 	init(C);
 
 	OutputConsole("Введите скалярный множитель");
-	Input(k);
+	Input(k1);
+	k = k1;
 
 	TIMER_T resAsm = Asm(A, B, C, k);
+	TIMER_T resMMX = MMX(A, B, C, k);
 	TIMER_T resC = C_Only(A, B, C, k);
-
+	
 	OutputConsole("Ассемблер сработал за " + std::to_string(resAsm) + " мс");
+	OutputConsole("MMX ассемблер сработал за " + std::to_string(resMMX) + " мс");
 	OutputConsole("С сработал за " + std::to_string(resC) + " мс");
 }
 
-void init(byte A[SIZE_ROW][SIZE_COLUMN])
+void init(byte* A)
 {
-	for (int i = 0; i < SIZE_ROW; i++)
+	for (long long int i = 0; i < (SIZE_ROW * SIZE_COLUMN); i++)
 	{
-		for (int j = 0; j < SIZE_COLUMN; ++j)
-		{
-			A[i][j] = random();
-		}
+		A[i] = random() + 5*i + 9;
 	}
 }
 
-TIMER_T Asm(byte A[SIZE_ROW][SIZE_COLUMN], const byte B[SIZE_ROW][SIZE_COLUMN], const byte C[SIZE_ROW][SIZE_COLUMN], const byte& k)
-{
-
-	byte lastRes = 0;
-
-	BEGIN_TIMER
-
-	for (int i = 0; i < SIZE_ROW; i++)
-	{
-		for (int j = 0; j < SIZE_COLUMN; ++j)
-		{
-			_asm
-			{
-				;init
-				mov bl, [B+SIZE_COLUMN*i+j]
-				mov al, k
-				mov cl, [C+SIZE_COLUMN*i+j]
-
-				mul cl	;k*C
-				add bl	;b+k*C
-
-				mov [A+SIZE_COLUMN*i+j], al
-				mov lastRes, al
-			}
-		}
-	}
-
-	END_TIMER
-
-	OutputConsole("Последний результат из сопроцессора: " + std::to_string(lastRes));
-	OutputConsole("RES SOPR: " + std::to_string(RES_TIMER));
-
-	return RES_TIMER;
-}
-/*
-TIMER_T Asm(const double& start, const double& end, const double& gap)
-{
-	long double lastRes = 0;
-	long double five = 5;
-
-	_asm finit;
-
-	BEGIN_TIMER
-
-	for (double i = start; i <= end; i += gap)
-	{
-		_asm
-		{
-			fld i
-			fld five
-			fadd
-			fsincos
-			fdiv		;tan (i+5)
-
-			fld i
-			fsin		;sin (i)
-
-			fmul		;sin * tan
-			
-			fstp lastRes
-		}
-	}
-
-	_asm fwait;
-
-	END_TIMER
-
-	OutputConsole("Последний результат из сопроцессора: " + std::to_string(lastRes));
-	OutputConsole("RES SOPR: " + std::to_string(RES_TIMER));
-
-	return RES_TIMER;
-}
-*/
-TIMER_T C_Only(byte A[SIZE_ROW][SIZE_COLUMN], const byte B[SIZE_ROW][SIZE_COLUMN], const byte C[SIZE_ROW][SIZE_COLUMN], const byte& k)
+TIMER_T Asm(byte* A, const byte* B, const byte* C, const byte k)
 {
 	byte lastRes = 0;
 
 	BEGIN_TIMER
 
-	for (int i = 0; i < SIZE_ROW; i++)
+	_asm
 	{
-		for (int j = 0; j < SIZE_COLUMN; ++j)
-		{
-			lastRes = A[i][j] = B[i][j] + k * C[i][j];
-		}
+		pusha
+
+		;init
+		mov ecx, SIZE_ROW*SIZE_COLUMN
+		xor esi, esi
+
+	loop1:
+		mov edi, B
+		mov bl, byte ptr [edi + esi]
+		mov al, k
+		mov edi, C
+		mov dl, byte ptr [edi + esi]
+
+		imul dl	;k*C
+		add al, bl	;b+k*C
+
+		mov edi, A
+		mov byte ptr [esi + edi], al
+		mov lastRes, al
+
+		inc esi
+		loop loop1
+
+		popa
+	}
+
+	END_TIMER
+
+	OutputConsole("Последний результат из ассемблера: " + std::to_string((long long)lastRes));
+	OutputConsole("RES ASM: " + std::to_string(RES_TIMER));
+
+	return RES_TIMER;
+}
+
+unsigned long long MMX(byte* A, const byte* B, const byte* C, const byte k)
+{
+	byte lastRes = 0;
+
+	BEGIN_TIMER
+	/* TODO
+	_asm
+	{
+		pusha
+
+		popa
+	}*/
+
+	END_TIMER
+
+	OutputConsole("Последний результат из MMX ассемблера: " + std::to_string((long long)lastRes));
+	OutputConsole("RES MMX ASM: " + std::to_string(RES_TIMER));
+
+	return RES_TIMER;
+}
+
+TIMER_T C_Only(byte* A, const byte* B, const byte* C, const byte k)
+{
+	byte lastRes = 0;
+
+	BEGIN_TIMER
+
+	for (long long int i = 0; i < (SIZE_ROW * SIZE_COLUMN); i++)
+	{
+		lastRes = A[i] = B[i] + k * C[i];
 	}
 
 	END_TIMER
