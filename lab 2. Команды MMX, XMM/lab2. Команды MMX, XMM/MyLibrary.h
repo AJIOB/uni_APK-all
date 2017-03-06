@@ -5,12 +5,14 @@
 #include "timers.h"
 #include "random.h"
 
-#define SIZE_ROW 1000000
-#define SIZE_COLUMN 8
+#define NUM_ROWS 1000000
+#define NUM_COLUMNS 4
 
-#ifndef BYTE
-#define BYTE
-typedef unsigned char byte;
+#ifndef WORD
+#define WORD
+typedef unsigned short int word;
+typedef unsigned long int dword;
+typedef unsigned long long int qword;
 #endif
 
 //основная функция
@@ -23,8 +25,8 @@ inline void programEnd()
 	PauseConsole();
 }
 
-void init (byte* A);
+void init (word* A);
 
-TIMER_T Asm(byte* A, const byte* B, const byte* C, const byte k);
-TIMER_T MMX(byte* A, const byte* B, const byte* C, const byte k);
-TIMER_T C_Only(byte* A, const byte* B, const byte* C, const byte k);
+TIMER_T Asm(word* A, const word* B, const word* C, const word k);
+TIMER_T MMX(word* A, const word* B, const word* C, const word k);
+TIMER_T C_Only(word* A, const word* B, const word* C, const word k);

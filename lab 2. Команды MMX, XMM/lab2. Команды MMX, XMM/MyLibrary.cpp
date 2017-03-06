@@ -6,12 +6,12 @@ void defaultFunction()
 {
 	using namespace Stream;
 
-	byte k;
+	word k;
 	int k1;			//tmp to input
 
-	byte* A = new byte[SIZE_ROW*SIZE_COLUMN];
-	byte* B = new byte[SIZE_ROW*SIZE_COLUMN];
-	byte* C = new byte[SIZE_ROW*SIZE_COLUMN];
+	word* A = new word[NUM_ROWS*NUM_COLUMNS];
+	word* B = new word[NUM_ROWS*NUM_COLUMNS];
+	word* C = new word[NUM_ROWS*NUM_COLUMNS];
 
 	init(B);
 	init(C);
@@ -29,17 +29,17 @@ void defaultFunction()
 	OutputConsole("С сработал за " + std::to_string(resC) + " мс");
 }
 
-void init(byte* A)
+void init(word* A)
 {
-	for (long long int i = 0; i < (SIZE_ROW * SIZE_COLUMN); i++)
+	for (long long int i = 0; i < (NUM_ROWS * NUM_COLUMNS); i++)
 	{
 		A[i] = random() + 5*i + 9;
 	}
 }
 
-TIMER_T Asm(byte* A, const byte* B, const byte* C, const byte k)
+TIMER_T Asm(word* A, const word* B, const word* C, const word k)
 {
-	byte lastRes = 0;
+	word lastRes = 0;
 
 	BEGIN_TIMER
 
@@ -48,24 +48,23 @@ TIMER_T Asm(byte* A, const byte* B, const byte* C, const byte k)
 		pusha
 
 		;init
-		mov ecx, SIZE_ROW*SIZE_COLUMN
+		mov ecx, NUM_ROWS*NUM_COLUMNS
 		xor esi, esi
 
 	loop1:
 		mov edi, B
-		mov bl, byte ptr [edi + esi]
-		mov al, k
+		mov bx, word ptr [edi + esi]
+		mov ax, k
 		mov edi, C
-		mov dl, byte ptr [edi + esi]
+		mov dx, word ptr [edi + esi]
 
-		imul dl	;k*C
-		add al, bl	;b+k*C
+		imul dx	;k*C
+		add ax, bx	;b+k*C
 
 		mov edi, A
-		mov byte ptr [esi + edi], al
-		mov lastRes, al
+		mov word ptr [esi + edi], ax
 
-		inc esi
+		add esi, 2
 		loop loop1
 
 		popa
@@ -73,26 +72,66 @@ TIMER_T Asm(byte* A, const byte* B, const byte* C, const byte k)
 
 	END_TIMER
 
+	lastRes = A[NUM_COLUMNS * NUM_ROWS - 1];
+
 	OutputConsole("Последний результат из ассемблера: " + std::to_string((long long)lastRes));
 	OutputConsole("RES ASM: " + std::to_string(RES_TIMER));
 
 	return RES_TIMER;
 }
 
-unsigned long long MMX(byte* A, const byte* B, const byte* C, const byte k)
+unsigned long long MMX(word* A, const word* B, const word* C, const word k)
 {
-	byte lastRes = 0;
+	word lastRes = 0;
+	qword sizeOfK = sizeof(k) * 8;
 
 	BEGIN_TIMER
-	/* TODO
+	// TODO
 	_asm
 	{
 		pusha
 
+		xor esi, esi
+		xor eax, eax
+		mov ax, k
+
+		pxor MM2, MM2	;k для операций над элементами
+		;pxor MM3, MM3	;k в аблосютном значении
+		movd MM3, eax
+
+		;нужно заполнить 4 блока числами k
+		mov ecx, NUM_COLUMNS
+	k_loop:
+		psllq MM2, sizeOfK
+		paddq MM2, MM3				;k (4 раза подряд)
+		loop k_loop
+		
+		;количество итераций цикла
+		mov ecx, NUM_ROWS
+	loop1:
+		mov edi, B
+		movq MM0, [edi + esi]	;b
+		mov edi, C
+		movq MM1, [esi + edi]	;c
+
+		pmullw MM1, MM2			; * words, save only low
+		paddsw MM1, MM0			; + signed words
+
+		mov edi, A
+		movq [esi + edi], MM1	;a
+
+		add esi, 8				;ведь длина одного mmx регистра - 8 байт
+
+		loop loop1
+
+		emms					;возврат к обычному режиму
+
 		popa
-	}*/
+	}
 
 	END_TIMER
+
+	lastRes = A[NUM_COLUMNS * NUM_ROWS - 1];
 
 	OutputConsole("Последний результат из MMX ассемблера: " + std::to_string((long long)lastRes));
 	OutputConsole("RES MMX ASM: " + std::to_string(RES_TIMER));
@@ -100,18 +139,20 @@ unsigned long long MMX(byte* A, const byte* B, const byte* C, const byte k)
 	return RES_TIMER;
 }
 
-TIMER_T C_Only(byte* A, const byte* B, const byte* C, const byte k)
+TIMER_T C_Only(word* A, const word* B, const word* C, const word k)
 {
-	byte lastRes = 0;
+	word lastRes = 0;
 
 	BEGIN_TIMER
 
-	for (long long int i = 0; i < (SIZE_ROW * SIZE_COLUMN); i++)
+	for (long long int i = 0; i < (NUM_ROWS * NUM_COLUMNS); i++)
 	{
-		lastRes = A[i] = B[i] + k * C[i];
+		A[i] = B[i] + k * C[i];
 	}
 
 	END_TIMER
+
+	lastRes = A[NUM_COLUMNS * NUM_ROWS - 1];
 
 	OutputConsole("Последний результат из С: " + std::to_string((long long)lastRes));
 	OutputConsole("RES C: " + std::to_string(RES_TIMER));
