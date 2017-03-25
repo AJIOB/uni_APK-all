@@ -13,8 +13,8 @@ void interrupt (*int8) (...);
 void interrupt (*int9) (...);
 
 // new interrupt handlers
-void interrupt  int60(...) { get_reg(); int8(); }
-void interrupt  int61(...) { get_reg(); int9(); }
+void interrupt  int70(...) { get_reg(); int8(); }
+void interrupt  int71(...) { get_reg(); int9(); }
 
 //return 0, if no keyboard interruption (second bit)
 int checkKeyBoardInt(int val)
@@ -133,18 +133,22 @@ void init()
 	int8 = getvect(0x08); // timer
 	int9 = getvect(0x09); // keyboard
 
-	setvect(0x70, int60); // 70-77
-	setvect(0x71, int61);
+	setvect(0x60, int70); // 70-77 (in task - 08h/60h)
+	setvect(0x71, int71);
 
 	_disable(); // disable interrupts handling (cli)
 
 	/* MASTER */
 	outp(0x20, 0x11);	//ICW1
-	outp(0x21, 0x70);	//ICW2	//todo:change
-	outp(0x21, 0x04);	//ICW3	//todo:change
+	outp(0x21, 0x70);	//ICW2
+	outp(0x21, 0x04);	//ICW3
 	outp(0x21, 0x01);	//ICW4
 	
-	//todo: add init slave
+	/* Slave */
+	outp(0xA0, 0x11);	//ICW1
+	outp(0xA1, 0x08);	//ICW2
+	outp(0xA1, 0x02);	//ICW3		010b (connect to IRQ2)
+	outp(0xA1, 0x01);	//ICW4
 
 	_enable(); // enable interrupt handling (sti)
 }
