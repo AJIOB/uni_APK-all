@@ -21,17 +21,19 @@ void interrupt  int61(...) { get_reg(); int9(); }
 
 void print(int val[NUM_Of_VEC])
 {
-	int deltaAddress = (80-8);				//num of last symbols in row
 	char temp;
 	int i;
+	int j;
+	int deltaAddress = (80-8);				//num of last symbols in row
+	
 	VIDEO far* screen = (VIDEO far *)MK_FP(0xB800, 0);
 	
 	for(j=0; j<NUM_Of_VEC; j++)
 	{
 		for(i=7;i>=0;i--)        //find bits
 		{
-			temp=val%2;
-			val/=2;         //fill the screen
+			temp=val[j]%2;
+			val[j]/=2;         //fill the screen
 			screen->symb=temp+'0';
 			screen->attr=0x5E;
 			screen++;
@@ -44,8 +46,15 @@ void print(int val[NUM_Of_VEC])
 // get data from registers
 void get_reg()
 {
+	int arr[NUM_Of_VEC];
 	outp(0x20, 0x0B);//master service register
-	//print(inp(0x20));//todo: fix
+	arr[0] = inp(0x20);
+	arr[1] = inp(0x20);
+	arr[2] = inp(0x20);
+	arr[3] = inp(0x20);
+	arr[4] = inp(0x20);
+	arr[5] = inp(0x20);
+	print(arr);//todo: fix
 }
 
 void init()
