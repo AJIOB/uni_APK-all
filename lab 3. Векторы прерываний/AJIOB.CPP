@@ -7,7 +7,6 @@ struct VIDEO
 };
 
 void get_reg();         	//get data from registres
-void print(int);    //fill in the screen
 
 //IRQ0-7
 void interrupt (*int8) (...);
@@ -17,14 +16,26 @@ void interrupt (*int9) (...);
 void interrupt  int60(...) { get_reg(); int8(); }
 void interrupt  int61(...) { get_reg(); int9(); }
 
+//return 0, if no keyboard interruption (second bit)
+int checkKeyBoardInt(int val)
+{
+	val/=2;
+	return val%2;
+}
+
+//fill in the screen
 void print(int val1, int val2, int val3, int val4, int val5, int val6)
 {
+	int toSwitch = 0;
 	char temp;
 	int i;
 	int deltaAddress = (80-8);				//num of last symbols in row
+	
+	toSwitch = (toSwitch + checkKeyBoardInt(val2)) % 2;
+	
 	unsigned char defaultAttr=0x5E;
 	unsigned char keyboardAttr=0x2F;
-	unsigned char currAttr=defaultAttr;
+	unsigned char currAttr=toSwitch==0?defaultAttr:keyboardAttr;
 	
 	VIDEO far* screen = (VIDEO far *)MK_FP(0xB800, 0);
 	
@@ -132,6 +143,8 @@ void init()
 	outp(0x21, 0x70);	//ICW2	//todo:change
 	outp(0x21, 0x04);	//ICW3	//todo:change
 	outp(0x21, 0x01);	//ICW4
+	
+	//todo: add init slave
 
 	_enable(); // enable interrupt handling (sti)
 }
