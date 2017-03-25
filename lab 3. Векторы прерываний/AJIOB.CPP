@@ -97,8 +97,23 @@ void print(int val1, int val2, int val3, int val4, int val5, int val6)
 // get data from registers
 void get_reg()
 {
+	int var1, var2, var3, var4, var5, var6;
+	
+	outp(0x20, 0x0A);//master query register
+	var1 = inp(0x20);
 	outp(0x20, 0x0B);//master service register
-	print(inp(0x20),inp(0x20),inp(0x20),inp(0x20),inp(0x20),inp(0x20));//todo: fix
+	var2 = inp(0x20);
+	//outp(0x21, 0x0B);//master mask register (check)
+	var3 = inp(0x21);
+	
+	outp(0xA0, 0x0A);//slave query register
+	var4 = inp(0xA0);
+	outp(0xA0, 0x0B);//slave service register
+	var5 = inp(0xA0);
+	//outp(0xA1, 0x0B);//slave mask register
+	var6 = inp(0xA1);
+	
+	print(var1, var2, var3, var4, var5, var6);
 }
 
 void init()
