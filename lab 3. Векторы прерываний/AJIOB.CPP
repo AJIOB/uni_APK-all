@@ -1,7 +1,5 @@
 #include <dos.h>
 
-#define NUM_Of_VEC 6
-
 struct VIDEO
 {
 	unsigned char symb;
@@ -19,42 +17,88 @@ void interrupt (*int9) (...);
 void interrupt  int60(...) { get_reg(); int8(); }
 void interrupt  int61(...) { get_reg(); int9(); }
 
-void print(int val[NUM_Of_VEC])
+void print(int val1, int val2, int val3, int val4, int val5, int val6)
 {
 	char temp;
 	int i;
-	int j;
 	int deltaAddress = (80-8);				//num of last symbols in row
+	unsigned char defaultAttr=0x5E;
+	unsigned char keyboardAttr=0x2F;
+	unsigned char currAttr=defaultAttr;
 	
 	VIDEO far* screen = (VIDEO far *)MK_FP(0xB800, 0);
 	
-	for(j=0; j<NUM_Of_VEC; j++)
+	
+	for(i=7;i>=0;i--)        //find bits
 	{
-		for(i=7;i>=0;i--)        //find bits
-		{
-			temp=val[j]%2;
-			val[j]/=2;         //fill the screen
-			screen->symb=temp+'0';
-			screen->attr=0x5E;
-			screen++;
-		}
-		
-		screen+=deltaAddress;
+		temp=val1%2;
+		val1/=2;         //fill the screen
+		screen->symb=temp+'0';
+		screen->attr=defaultAttr;
+		screen++;
+	}
+	
+	screen+=deltaAddress;
+	
+	for(i=7;i>=0;i--)        //find bits
+	{
+		temp=val2%2;
+		val2/=2;         //fill the screen
+		screen->symb=temp+'0';
+		screen->attr=currAttr;
+		screen++;
+	}
+	
+	screen+=deltaAddress;
+	
+	for(i=7;i>=0;i--)        //find bits
+	{
+		temp=val3%2;
+		val3/=2;         //fill the screen
+		screen->symb=temp+'0';
+		screen->attr=currAttr;
+		screen++;
+	}
+	
+	screen+=deltaAddress;
+	
+	for(i=7;i>=0;i--)        //find bits
+	{
+		temp=val4%2;
+		val4/=2;         //fill the screen
+		screen->symb=temp+'0';
+		screen->attr=currAttr;
+		screen++;
+	}
+	
+	screen+=deltaAddress;
+	
+	for(i=7;i>=0;i--)        //find bits
+	{
+		temp=val5%2;
+		val5/=2;         //fill the screen
+		screen->symb=temp+'0';
+		screen->attr=currAttr;
+		screen++;
+	}
+	
+	screen+=deltaAddress;
+	
+	for(i=7;i>=0;i--)        //find bits
+	{
+		temp=val6%2;
+		val6/=2;         //fill the screen
+		screen->symb=temp+'0';
+		screen->attr=keyboardAttr;
+		screen++;
 	}
 }
 
 // get data from registers
 void get_reg()
 {
-	int arr[NUM_Of_VEC];
 	outp(0x20, 0x0B);//master service register
-	arr[0] = inp(0x20);
-	arr[1] = inp(0x20);
-	arr[2] = inp(0x20);
-	arr[3] = inp(0x20);
-	arr[4] = inp(0x20);
-	arr[5] = inp(0x20);
-	print(arr);//todo: fix
+	print(inp(0x20),inp(0x20),inp(0x20),inp(0x20),inp(0x20),inp(0x20));//todo: fix
 }
 
 void init()
