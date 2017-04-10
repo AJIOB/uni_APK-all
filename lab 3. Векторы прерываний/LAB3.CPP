@@ -11,10 +11,42 @@ void get_reg();         	//get data from registres
 //IRQ0-7
 void interrupt (*int8) (...);
 void interrupt (*int9) (...);
+void interrupt (*intA) (...);
+void interrupt (*intB) (...);
+void interrupt (*intC) (...);
+void interrupt (*intD) (...);
+void interrupt (*intE) (...);
+void interrupt (*intF) (...);
+
+//IRQ8-15
+void interrupt (*int0) (...);
+void interrupt (*int1) (...);
+void interrupt (*int2) (...);
+void interrupt (*int3) (...);
+void interrupt (*int4) (...);
+void interrupt (*int5) (...);
+void interrupt (*int6) (...);
+void interrupt (*int7) (...);
+
 
 // new interrupt handlers
 void interrupt  new8(...) { get_reg(); int8(); }
 void interrupt  new9(...) { get_reg(); int9(); }
+void interrupt  newA(...) { get_reg(); intA(); }
+void interrupt  newB(...) { get_reg(); intB(); }
+void interrupt  newC(...) { get_reg(); intC(); }
+void interrupt  newD(...) { get_reg(); intD(); }
+void interrupt  newE(...) { get_reg(); intE(); }
+void interrupt  newF(...) { get_reg(); intF(); }
+
+void interrupt  new0(...) { get_reg(); int0(); }
+void interrupt  new1(...) { get_reg(); int1(); }
+void interrupt  new2(...) { get_reg(); int2(); }
+void interrupt  new3(...) { get_reg(); int3(); }
+void interrupt  new4(...) { get_reg(); int4(); }
+void interrupt  new5(...) { get_reg(); int5(); }
+void interrupt  new6(...) { get_reg(); int6(); }
+void interrupt  new7(...) { get_reg(); int7(); }
 
 //return 0, if no keyboard interruption (second bit)
 int checkKeyBoardInt(int val)
@@ -134,9 +166,39 @@ void init()
 	//IRQ0-7
 	int8 = getvect(0x08); // timer
 	int9 = getvect(0x09); // keyboard
+	intA = getvect(0x0A);
+	intB = getvect(0x0B);
+	intC = getvect(0x0C);
+	intD = getvect(0x0D);
+	intE = getvect(0x0E);
+	intF = getvect(0x0F);
+
+	int0 = getvect(0x70);
+	int1 = getvect(0x71);
+	int2 = getvect(0x72);
+	int3 = getvect(0x73);
+	int4 = getvect(0x74);
+	int5 = getvect(0x75);
+	int6 = getvect(0x76);
+	int7 = getvect(0x77);
 
 	setvect(0x08, new8);
 	setvect(0x09, new9);
+	setvect(0x0A, newA);
+	setvect(0x0B, newB);
+	setvect(0x0C, newC);
+	setvect(0x0D, newD);
+	setvect(0x0E, newE);
+	setvect(0x0F, newF);
+
+	setvect(0x70, new0);
+	setvect(0x71, new1);
+	setvect(0x72, new2);
+	setvect(0x73, new3);
+	setvect(0x74, new4);
+	setvect(0x75, new5);
+	setvect(0x76, new6);
+	setvect(0x77, new7);
 
 	_disable(); // disable interrupts handling (cli)
 
