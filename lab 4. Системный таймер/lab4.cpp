@@ -2,7 +2,7 @@
 + 1) c помощью системного таймера генерирует звук заданной частоты (по вариантам);
 + 2) выводит слово состояния для каждого канала в двоичном виде;
 + 3) определяет коэффициент деления для каждого канала в 16-ричном виде.
-  *Реализовать генератор случайных чисел от нуля до заданного с клавиатуры числа.
++ *Реализовать генератор случайных чисел от нуля до заданного с клавиатуры числа.
 */
 
 #include <dos.h>
@@ -77,8 +77,8 @@ void playOneBeep(int f, int sleepTime)
 	int delim;
 	outp(0x43, 0xB6);						//10(channel 2) 11(RW lower, than higher) 011(mode 3: with autoloading) 0 (binary)
 	delim = maxValue / f;
-	outp(0x42, delim % 256);
-	outp(0x42, delim / 256);
+	outp(0x42, delim % 0x100);
+	outp(0x42, delim / 0x100);
 
 	//включаем динамик
 	delim = inp(0x61);
@@ -149,12 +149,26 @@ int max(unsigned int* m)
 	return max;
 }
 
+unsigned int getCE(int channel)
+{
+	int state;
+	int delim;
+	int port = 0x40;
+	state = getState(channel);
+	outp(0x43, (state & 0x0F) | (channel << 6));			//(state & 0x0F) => SC (channel number) = 0, RW = 0 (get CE); than add channel number
+	outp(0x43, (state & 0x3F) | (channel << 6) | 0x30);			//(state & 0x3F) => SC = 0; ... | 0x30 => RW = 11 (first lower part)
+	state = inp(port + channel);
+	delim = inp(port + channel);
+	delim <<= 8;
+	delim += state;
+	return delim;
+}
+
 void printDelims()
 {
 	unsigned int m[timesToRepeate];
 	int i;
 	unsigned int j;
-	int state;
 	int port = 0x40;
 	int delim = 0;
 	int speakerWasOn = 0;
@@ -173,15 +187,7 @@ void printDelims()
 
 		for (j = 0; j < timesToRepeate; j++)
 		{
-			delim = 0;
-			state = getState(i);
-			outp(0x43, (state & 0x0F) + i*0x40);			//(state & 0x0F) => SC (channel number) = 0, RW (get CE) = 0; than add channel number
-			state = inp(port);
-			delim = inp(port);
-			delim <<= 8;
-			delim += state;
-
-			m[j] = delim;
+			m[j] = getCE(i);
 		}
 
 		printf("Port 0x%X: %X\n", port, max(m));
@@ -190,8 +196,39 @@ void printDelims()
 	//выключаем только канал, если нужно
 	delim = inp(0x61);
 	speakerWasOn |= 0xFFFE;									//все биты, кроме последнего
-	delim &= speakerWasOn;
+	outp(0x61, delim & speakerWasOn);
+}
+
+void AJIOBrandom()
+{
+	int delim = 0;
+	int speakerWasOn = 0;
+	unsigned int maxNum = 0;
+
+	printf("Input max random number, please\n");
+	scanf("%u", &maxNum);
+
+	//clear buffer
+	while (getchar() != '\n');
+
+	outp(0x43, 0xB4);						//10(channel 2) 11(RW lower, than higher) 010(mode 2: with autoloading) 0 (binary)
+	outp(0x42, maxNum % 0x100);
+	outp(0x42, maxNum / 0x100);
+
+	//включаем только канал
+	delim = inp(0x61);
+	speakerWasOn = delim & 0x01;
 	outp(0x61, delim | 0x01);
+
+	printf("Press Enter go generate number\n");
+	getchar();
+
+	printf("Your number is: %u", getCE(2));
+
+	//выключаем только канал, если нужно
+	delim = inp(0x61);
+	speakerWasOn |= 0xFFFE;									//все биты, кроме последнего
+	outp(0x61, delim & speakerWasOn);
 }
 
 int main()
@@ -205,5 +242,7 @@ int main()
 	printf("\nEnd values:\n");
 	printStateWords();
 	printDelims();
+
+	AJIOBrandom();
 	return 0;
 }
