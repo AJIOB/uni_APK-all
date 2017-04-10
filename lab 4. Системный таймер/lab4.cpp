@@ -59,6 +59,8 @@ const int task[] = {
 	329, 400
 };
 
+const unsigned int timesToRepeate = 30000;
+
 struct oneByte{
 	unsigned int b0 : 1;
 	unsigned int b1 : 1;
@@ -80,15 +82,13 @@ void playOneBeep(int f, int sleepTime)
 
 	//включаем динамик
 	delim = inp(0x61);
-	delim |= 11;
-	outp(0x61, delim);
+	outp(0x61, delim | 11);
 
 	delay(sleepTime);
 
 	//выключаем динамик
 	delim = inp(0x61);
-	delim &= 0xFC;
-	outp(0x61, delim);
+	outp(0x61, delim & 0xFC);
 }
 
 void playSound()
@@ -111,25 +111,74 @@ void playSound()
 	}
 }
 
+//channel must be 0, 1 or 2 only
+int getState(int channel)
+{
+	outp(0x43, 0xE0 + (2 << channel));			//11(RBC mode: read channel mode) 1(not save CE - current state of counter) 0(read value of channel) number_of_channel 0
+	return inp(0x40 + channel);
+}
+
 void printStateWords()
 {
 	int i;
 	int port = 0x40;
 	int valuep;
-	int delta = 2;
 	struct oneByte* ob = (oneByte*)&valuep;
 
-	for (i = 0; i < 3; ++i, delta *= 2, port++)
+	printf("State words:\n");
+
+	for (i = 0; i < 3; ++i, port++)
 	{
-		outp(0x43, 0xE0 + delta);			//11 1(not save CE - current state of counter) 0(read value of channel) number_of_channel 0
-		valuep = inp(port);
-		printf("Port 0x%x: %d%d%d%d%d%d%d%d\n", port, ob->b7, ob->b6, ob->b5, ob->b4, ob->b3, ob->b2, ob->b1, ob->b0);
+		valuep = getState(i);
+		printf("Port 0x%X: %d%d%d%d%d%d%d%d\n", port, ob->b7, ob->b6, ob->b5, ob->b4, ob->b3, ob->b2, ob->b1, ob->b0);
 	}
+}
+
+int max(unsigned int* m)
+{
+	unsigned int i, max = 0;
+
+	for (i = 0; i < timesToRepeate; ++i)
+	{
+		if (max < m[i])
+		{
+			max = m[i];
+		}
+	}
+
+	return max;
 }
 
 void printDelims()
 {
-	//todo
+	unsigned int m[timesToRepeate];
+	int i;
+	unsigned int j;
+	int state;
+	int port = 0x40;
+	int delim = 0;
+
+	printf("Delimiters:\n");
+
+	for (i = 0; i < 3; ++i, port++)
+	{
+		
+		for (j = 0; j < timesToRepeate; j++)
+		{
+			delim = 0;
+			state = getState(i);
+			outp(0x43, (state & 0x0F) + i*0x40);			//(state & 0x0F) => SC (channel number) = 0, RW (get CE) = 0; than add channel number
+			state = inp(port);
+			delim = inp(port);
+			delim <<= 8;
+			delim += state;
+
+			m[j] = delim;
+		}
+
+		printf("Port 0x%X: %X\n", port, max(m));
+	}
+
 }
 
 int main()
