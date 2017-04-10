@@ -191,14 +191,14 @@ void init()
 	setvect(0x0E, newE);
 	setvect(0x0F, newF);
 
-	setvect(0x70, new0);
-	setvect(0x71, new1);
-	setvect(0x72, new2);
-	setvect(0x73, new3);
-	setvect(0x74, new4);
-	setvect(0x75, new5);
-	setvect(0x76, new6);
-	setvect(0x77, new7);
+	setvect(0x60, new0);
+	setvect(0x61, new1);
+	setvect(0x62, new2);
+	setvect(0x63, new3);
+	setvect(0x64, new4);
+	setvect(0x65, new5);
+	setvect(0x66, new6);
+	setvect(0x67, new7);
 
 	_disable(); // disable interrupts handling (cli)
 
