@@ -2,6 +2,7 @@
 
 const long int maxValue = 1193180;
 
+int isTask = 0;
 
 int arrSize = 52;
 //freq = 0 => delay 
@@ -37,6 +38,19 @@ const int music[] = {
 	123, 1000
 };
 
+int taskSize = 18;
+const int task[] = {
+	392, 400,
+	329, 400,
+	329, 400,
+	392, 400,
+	329, 400,
+	329, 400,
+	392, 400,
+	349, 400,
+	329, 400
+};
+
 void playOneBeep(int f, int sleepTime)
 {
 	int delim;
@@ -60,18 +74,20 @@ void playOneBeep(int f, int sleepTime)
 
 void playSound()
 {
+	int size = isTask == 0 ? arrSize : taskSize;
+	const int *arr = isTask == 0 ? music : task;
 	double k = 1.5;
 	int i;
 
-	for (i = 0; i < arrSize; ++i, ++i)
+	for (i = 0; i < size; ++i, ++i)
 	{
-		if (music[i] == 0)
+		if (arr[i] == 0)
 		{
-			delay(k * music[i+1]);
+			delay(k * arr[i+1]);
 		}
 		else
 		{
-			playOneBeep(music[i], k*music[i+1]);
+			playOneBeep(arr[i], k*arr[i+1]);
 		}
 	}
 }
