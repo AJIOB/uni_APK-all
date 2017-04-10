@@ -1,14 +1,14 @@
 /*
 + 1) c помощью системного таймера генерирует звук заданной частоты (по вариантам);
 + 2) выводит слово состояния для каждого канала в двоичном виде;
-  3) определяет коэффициент деления для каждого канала в 16-ричном виде.
++ 3) определяет коэффициент деления для каждого канала в 16-ричном виде.
   *Реализовать генератор случайных чисел от нуля до заданного с клавиатуры числа.
 */
 
 #include <dos.h>
 #include <stdio.h>
 
-const long int maxValue = 1193180;
+const unsigned long int maxValue = 1193180;
 
 int isTask = 0;
 
@@ -75,14 +75,14 @@ struct oneByte{
 void playOneBeep(int f, int sleepTime)
 {
 	int delim;
-	outp(0x43, 0xB6);
+	outp(0x43, 0xB6);						//10(channel 2) 11(RW lower, than higher) 011(mode 3: with autoloading) 0 (binary)
 	delim = maxValue / f;
 	outp(0x42, delim % 256);
 	outp(0x42, delim / 256);
 
 	//включаем динамик
 	delim = inp(0x61);
-	outp(0x61, delim | 11);
+	outp(0x61, delim | 0x03);
 
 	delay(sleepTime);
 
@@ -157,12 +157,20 @@ void printDelims()
 	int state;
 	int port = 0x40;
 	int delim = 0;
+	int speakerWasOn = 0;
 
 	printf("Delimiters:\n");
 
 	for (i = 0; i < 3; ++i, port++)
 	{
-		
+		if (i == 2)
+		{
+			//включаем только канал
+			delim = inp(0x61);
+			speakerWasOn = delim & 0x01;
+			outp(0x61, delim | 0x01);
+		}
+
 		for (j = 0; j < timesToRepeate; j++)
 		{
 			delim = 0;
@@ -179,6 +187,11 @@ void printDelims()
 		printf("Port 0x%X: %X\n", port, max(m));
 	}
 
+	//выключаем только канал, если нужно
+	delim = inp(0x61);
+	speakerWasOn |= 0xFFFE;									//все биты, кроме последнего
+	delim &= speakerWasOn;
+	outp(0x61, delim | 0x01);
 }
 
 int main()
