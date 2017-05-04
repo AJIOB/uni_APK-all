@@ -10,6 +10,7 @@
 #include <dos.h>
 #include <stdio.h>
 
+//--------------alarm audio---------------------
 const unsigned long int maxValue = 1193180;
 
 int taskSize = 18;
@@ -64,14 +65,83 @@ void playSound()
 	}
 }
 
+//----------------new block---------------------
+void clear()
+{
+	while(getchar() != '\n');
+}
+
+int BCDfrom71()
+{
+	int inBCD = inp(0x71);
+	return (inBCD % 0x10) + (inBCD / 0x10) * 10;
+}
+
+void BCDto71(int inBCD)
+{
+	outp(0x71, (inBCD % 10) + (inBCD / 10) * 0x10);
+}
+
 void readRTC()
 {
-	//todo
+	outp(0x70, 00);
+	int seconds = BCDfrom71();
+	outp(0x70, 02);
+	int minutes = BCDfrom71();
+	outp(0x70, 04);
+	int hours = BCDfrom71();
+	//для заполнения нулями оставшихся позиций (все время вывод по 2 цифры)
+	printf("%02d:%02d:%02d\n", hours, minutes, seconds);
 }
+
+int timesTryingToSetTime = 3;
 
 void writeRTC()
 {
+	int hours = 0, minutes = 0, seconds = 0;
+
+	printf("Input current hours: ");
+	scanf("%d", &hours);
+	printf("Input current minutes: ");
+	scanf("%d", &minutes);
+	printf("Input current seconds: ");
+	scanf("%d", &seconds);
+	clear();
+
 	//todo
+	outp(0x70, 0xA);
+	int i = 0;
+	for(; i < timesTryingToSetTime; ++i)
+	{
+		//check to 0xx..xx (time not updating now)
+		if (!(inp(0x71) & 0x80))
+		{
+			//we found 0xx..xx
+			break;
+		}
+	}
+
+	if (i == timesTryingToSetTime)
+	{
+		printf("Cannot install RTC time\n");
+		return;
+	}
+
+	//turn off clock automatic update
+	outp(0x70, 0xB);
+	outp(0x71, inp(0x71) | 0x80);
+
+	//write clock value
+	outp(0x70, 00);
+	BCDto71(seconds);
+	outp(0x70, 02);
+	BCDto71(minutes);
+	outp(0x70, 04);
+	BCDto71(hours);
+
+	//turn on clock automatic update
+	outp(0x70, 0xB);
+	outp(0x71, inp(0x71) & 0x7F);
 }
 
 void AJIOB_sleep()
@@ -95,7 +165,7 @@ void menu()
 		printf("0. Exit\n");
 
 		char k = getchar();
-		while(getchar() != '\n');
+		clear();
 		switch (k)
 		{
 		case '0':
