@@ -1,8 +1,8 @@
 /*
-  1) считывает и устанавливает время в часах реального времени;
-  2) реализует функцию задержки с точностью в миллисекунды;
++ 1) считывать и устанавливать время в часах реального времени;
++ 2) реализовать функцию задержки с точностью в миллисекунды;
   3) реализовать функции программируемого будильника.
-  Пока выполняется задержка часы реального времени должны идти (задерживается лишь выполнение текущей программы/функции).
++ Пока выполняется задержка часы реального времени должны идти (задерживается лишь выполнение текущей программы/функции).
   *Будильник может устанавливаться и переустанавливаться до его срабатывания.
   *После установки будильника можно выполнять что-либо, например, смотреть текущее время, задавать новое время и т.д.
 */
@@ -65,7 +65,7 @@ void playSound()
 	}
 }
 
-//----------------new block---------------------
+//---------------------1----------------------
 void clear()
 {
 	while(getchar() != '\n');
@@ -91,7 +91,7 @@ void readRTC()
 	outp(0x70, 04);
 	int hours = BCDfrom71();
 	//для заполнения нулями оставшихся позиций (все время вывод по 2 цифры)
-	printf("%02d:%02d:%02d\n", hours, minutes, seconds);
+	printf("Current time: %02d:%02d:%02d\n", hours, minutes, seconds);
 }
 
 int timesTryingToSetTime = 3;
@@ -131,6 +131,9 @@ void writeRTC()
 	outp(0x70, 0xB);
 	outp(0x71, inp(0x71) | 0x80);
 
+	readRTC();
+	printf("Installing new time...\n");
+
 	//write clock value
 	outp(0x70, 00);
 	BCDto71(seconds);
@@ -139,14 +142,65 @@ void writeRTC()
 	outp(0x70, 04);
 	BCDto71(hours);
 
+	readRTC();
+
 	//turn on clock automatic update
 	outp(0x70, 0xB);
 	outp(0x71, inp(0x71) & 0x7F);
 }
 
+//--------------------2----------------------
+
+long int sleepDuration;
+
+void decrement()
+{
+	sleepDuration--;
+	//printf("hello %ld\n", sleepDuration);
+}
+
+void interrupt (*old_RTC_handler) (...);
+void interrupt  new_RTC_handler(...) { decrement(); old_RTC_handler(); }
+
 void AJIOB_sleep()
 {
-	//todo
+	_disable(); // disable interrupts handling (cli) [Interrupt flag]
+
+	old_RTC_handler = getvect(0x70);
+	setvect(0x70, new_RTC_handler);
+
+	_enable(); // enable interrupt handling (sti) [Interrupt flag]
+	
+	printf("Input sleep duration in milliseconds: ");
+	scanf("%ld", &sleepDuration);
+	clear();
+
+	readRTC();
+	printf("We are sleeping...\n");
+
+	//unlock interruptions from RTC
+	outp(0xA1, inp(0xA1) & 0xFE);
+
+	//turn on periondic interruption
+	outp(0x70, 0xB);
+	outp(0x71, inp(0x71) | 0x40);
+
+	//wait
+	while(sleepDuration > 0);
+
+	readRTC();
+
+	//turn off periondic interruption
+	outp(0x70, 0xB);
+	outp(0x71, inp(0x71) & 0xBF);
+
+	//lock interruptions from RTC
+	outp(0xA1, inp(0xA1) | 0x01);
+
+	//return interrupt handlers back
+	_disable(); // disable interrupts handling (cli) [Interrupt flag]
+	setvect(0x70, old_RTC_handler);
+	_enable(); // enable interrupt handling (sti) [Interrupt flag]
 }
 
 void setAlarm()
