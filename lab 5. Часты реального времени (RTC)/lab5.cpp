@@ -10,61 +10,6 @@
 #include <dos.h>
 #include <stdio.h>
 
-//--------------alarm audio---------------------
-const unsigned long int maxValue = 1193180;
-
-int taskSize = 18;
-const int task[] = {
-	392, 400,
-	329, 400,
-	329, 400,
-	392, 400,
-	329, 400,
-	329, 400,
-	392, 400,
-	349, 400,
-	329, 400
-};
-
-void playOneBeep(int f, int sleepTime)
-{
-	int delim;
-	outp(0x43, 0xB6);						//10(channel 2) 11(RW lower, than higher) 011(mode 3: with autoloading) 0 (binary)
-	delim = maxValue / f;
-	outp(0x42, delim % 0x100);
-	outp(0x42, delim / 0x100);
-
-	//включаем динамик
-	delim = inp(0x61);
-	outp(0x61, delim | 0x03);
-
-	delay(sleepTime);
-
-	//выключаем динамик
-	delim = inp(0x61);
-	outp(0x61, delim & 0xFC);
-}
-
-void playSound()
-{
-	int size = taskSize;
-	const int *arr = task;
-	double k = 1.5;
-	int i;
-
-	for (i = 0; i < size; ++i, ++i)
-	{
-		if (arr[i] == 0)
-		{
-			delay(k * arr[i+1]);
-		}
-		else
-		{
-			playOneBeep(arr[i], k*arr[i+1]);
-		}
-	}
-}
-
 //---------------------1----------------------
 void clear()
 {
@@ -108,7 +53,6 @@ void writeRTC()
 	scanf("%d", &seconds);
 	clear();
 
-	//todo
 	outp(0x70, 0xA);
 	int i = 0;
 	for(; i < timesTryingToSetTime; ++i)
@@ -156,7 +100,6 @@ long int sleepDuration;
 void decrement()
 {
 	sleepDuration--;
-	//printf("hello %ld\n", sleepDuration);
 }
 
 void interrupt (*old_RTC_handler) (...);
@@ -164,38 +107,38 @@ void interrupt  new_RTC_handler(...) { decrement(); old_RTC_handler(); }
 
 void AJIOB_sleep()
 {
-	_disable(); // disable interrupts handling (cli) [Interrupt flag]
-
-	old_RTC_handler = getvect(0x70);
-	setvect(0x70, new_RTC_handler);
-
-	_enable(); // enable interrupt handling (sti) [Interrupt flag]
-	
 	printf("Input sleep duration in milliseconds: ");
 	scanf("%ld", &sleepDuration);
 	clear();
 
+	_disable(); // disable interrupts handling (cli) [Interrupt flag]
+	old_RTC_handler = getvect(0x70);
+	setvect(0x70, new_RTC_handler);
+	_enable(); // enable interrupt handling (sti) [Interrupt flag]
+
 	readRTC();
 	printf("We are sleeping...\n");
 
-	//unlock interruptions from RTC
-	outp(0xA1, inp(0xA1) & 0xFE);
+	//unmask interruptions from RTC
+	int old_A1 = inp(0xA1);
+	outp(0xA1, old_A1 & 0xFE);
 
 	//turn on periondic interruption
 	outp(0x70, 0xB);
-	outp(0x71, inp(0x71) | 0x40);
+	int old_71 = inp(0x71);
+	outp(0x71, old_71 | 0x40);
 
 	//wait
 	while(sleepDuration > 0);
 
 	readRTC();
 
-	//turn off periondic interruption
+	//turn off (restore previous) periondic interruption
 	outp(0x70, 0xB);
-	outp(0x71, inp(0x71) & 0xBF);
+	outp(0x71, inp(0x71) & (0xBF | old_71));
 
-	//lock interruptions from RTC
-	outp(0xA1, inp(0xA1) | 0x01);
+	//mask (restore previous) interruptions from RTC
+	outp(0xA1, inp(0xA1) | (0x01 & old_A1));
 
 	//return interrupt handlers back
 	_disable(); // disable interrupts handling (cli) [Interrupt flag]
@@ -203,10 +146,117 @@ void AJIOB_sleep()
 	_enable(); // enable interrupt handling (sti) [Interrupt flag]
 }
 
+//----------------------------3-----------------------------------
+
+int old_A1 = 0;
+int old_71 = 0;
+int isAlarmCompleted = 1;
+
+void alarm();
+
+void interrupt (*old_alarm_handler) (...);
+void interrupt (*test_alarm_handler) (...);
+void interrupt  new_alarm_handler(...) { alarm(); old_alarm_handler(); }
+
+struct VIDEO
+{
+	unsigned char symb;
+	unsigned char attr;
+};
+
+void alarm()
+{
+	VIDEO far* screen = (VIDEO far *)MK_FP(0xB800, 0);
+	screen += 80*15 + 40;
+	screen->attr = 0x24;
+	screen->attr = 0x22;
+	
+	isAlarmCompleted = 1;
+
+	//mask (restore previous) interruptions from RTC
+	outp(0xA1, inp(0xA1) | (0x01 & old_A1));
+
+	//turn off (restore previous) alarm interruption
+	outp(0x70, 0xB);
+	outp(0x71, inp(0x71) & (0xDF | old_71));
+}
+
+
 void setAlarm()
 {
-	//todo
+	int hours = 0, minutes = 0, seconds = 0;
+
+	printf("Input alarm hours: ");
+	scanf("%d", &hours);
+	printf("Input alarm minutes: ");
+	scanf("%d", &minutes);
+	printf("Input alarm seconds: ");
+	scanf("%d", &seconds);
+	clear();
+
+	//write alarm value
+	outp(0x70, 01);
+	BCDto71(seconds);
+	outp(0x70, 03);
+	BCDto71(minutes);
+	outp(0x70, 05);
+	BCDto71(hours);
+
+	_disable(); // disable interrupts handling (cli) [Interrupt flag]
+	test_alarm_handler = getvect(0x4A);
+	if (test_alarm_handler != new_alarm_handler)
+	{
+		old_alarm_handler = test_alarm_handler;
+		setvect(0x4A, new_alarm_handler);
+
+		printf("Alarm vector is installing...\n");
+	}
+	else
+	{
+		printf("Alarm vector is reinstalling...\n");
+	}
+	_enable(); // enable interrupt handling (sti) [Interrupt flag]
+
+	if (isAlarmCompleted)
+	{
+		//turn on alarm interruption
+		outp(0x70, 0xB);
+		old_71 = inp(0x71);
+		outp(0x71, old_71 | 0x20);
+
+		//unmask interruptions from RTC
+		old_A1 = inp(0xA1);
+		outp(0xA1, old_A1 & 0xFE);
+
+		printf("Alarm is installing...\n");
+	}
+	else
+	{
+		printf("Alarm is reinstalling...\n");
+	}
+
+	printf("Alarm is (re-)installed\n");
 }
+
+void uninstallAlarm()
+{
+	printf("Uninstalling alarm vector...\n");
+
+	_disable(); // disable interrupts handling (cli) [Interrupt flag]
+	test_alarm_handler = getvect(0x4A);
+	if (test_alarm_handler == new_alarm_handler)
+	{
+		setvect(0x4A, old_alarm_handler);
+		printf("Uninstalling alarm vector is successful\n");
+	}
+	else
+	{
+		printf("Uninstalling alarm vector is not required\n");
+	}
+	_enable(); // enable interrupt handling (sti) [Interrupt flag]
+}
+
+//-------------------------other----------------------------------
 
 void menu()
 {
@@ -223,6 +273,7 @@ void menu()
 		switch (k)
 		{
 		case '0':
+			uninstallAlarm();
 			return;
 		case '1':
 			readRTC();
