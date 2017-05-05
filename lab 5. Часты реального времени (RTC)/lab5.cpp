@@ -10,6 +10,55 @@
 #include <dos.h>
 #include <stdio.h>
 
+//-------------------alarm text--------------
+
+typedef unsigned char byte;
+
+struct VIDEO
+{
+	byte symb;
+	byte attr;
+};
+
+#define green {0x20, 0x20}
+#define white {0x20, 0x7F}
+
+VIDEO text[] = {
+	green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green,
+	green, green, green, green, white, green, green, green, green, green, white, green, green, white, white, green, white, green, white, white, green, white, white, white, green, green, green, green, white, green, green, white, green, white, white, white, green, green, green, green,
+	green, green, green, green, white, green, green, green, green, green, white, green, white, green, white, green, white, green, white, green, green, white, green, green, green, green, green, green, white, green, green, white, green, white, green, white, green, green, green, green,
+	green, green, green, green, green, white, green, white, green, white, green, green, white, white, white, green, white, white, green, green, green, white, white, green, green, green, green, green, white, green, green, white, green, white, white, white, green, green, green, green,
+	green, green, green, green, green, white, green, white, green, white, green, green, white, green, white, green, white, green, white, green, green, white, green, green, green, green, green, green, white, green, green, white, green, white, green, green, green, green, green, green,
+	green, green, green, green, green, green, white, green, white, green, green, green, white, green, white, green, white, green, white, white, green, white, white, white, green, green, green, green, green, white, white, green, green, white, green, green, green, green, green, green,
+	green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green, green
+};
+
+#undef green
+#undef white
+
+void printAlarmText()
+{
+	VIDEO far* screen = (VIDEO far *)MK_FP(0xB800, 0);
+	screen += 80*12 + 35;
+
+	VIDEO* it = text;
+
+	screen->attr = 0x20;
+	screen->symb = 0x20;
+
+	for (int i = 0; i < 7; ++i)
+	{
+		for (int j = 0; j < 40; j++)
+		{
+			screen->attr = it->attr;
+			screen->symb = it->symb;
+			screen++;
+			it++;
+		}
+		screen += 40;
+	}
+}
+
 //---------------------1----------------------
 void clear()
 {
@@ -158,18 +207,9 @@ void interrupt (*old_alarm_handler) (...);
 void interrupt (*test_alarm_handler) (...);
 void interrupt  new_alarm_handler(...) { alarm(); old_alarm_handler(); }
 
-struct VIDEO
-{
-	unsigned char symb;
-	unsigned char attr;
-};
-
 void alarm()
 {
-	VIDEO far* screen = (VIDEO far *)MK_FP(0xB800, 0);
-	screen += 80*15 + 40;
-	screen->attr = 0x24;
-	screen->attr = 0x22;
+	printAlarmText();
 	
 	isAlarmCompleted = 1;
 
