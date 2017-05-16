@@ -169,8 +169,8 @@ bool setIndicatorsWithCheck(bool onCaps, bool onNum, bool onScroll)
 	return res;
 }
 
-double k = 1;
-const double oneSleepTimeInMS = 500;
+double durationCoefficient = 1;
+const double oneSleepTimeInMS = 400;
 
 //must be from 0 to 1. 
 double coefficientOn = 0.7;
@@ -178,12 +178,12 @@ double coefficientOn = 0.7;
 //--------------------------------delay times-----------------------------
 double getDelayOn()
 {
-	return (oneSleepTimeInMS * k * coefficientOn);
+	return (oneSleepTimeInMS * durationCoefficient * coefficientOn);
 }
 
 double getDelayOff()
 {
-	return (oneSleepTimeInMS * k * (1 - coefficientOn));
+	return (oneSleepTimeInMS * durationCoefficient * (1 - coefficientOn));
 }
 
 double getDelayPeriod()
@@ -209,16 +209,18 @@ void delayPeriod()
 
 //-------------------------------mixed (audio + lights)---------------------
 
+bool exitOnError = true;
+
 bool foots()
 {
 	//on
-	if (!setIndicatorsWithCheck(true, false, false))
+	if (!setIndicatorsWithCheck(true, false, false) && exitOnError)
 	{
 		return false;
 	}
 	playOneBeep(freqFoot, getDelayOn());
 	//little off
-	if (!setIndicatorsWithCheck(false, false, false))
+	if (!setIndicatorsWithCheck(false, false, false) && exitOnError)
 	{
 		return false;
 	}
@@ -230,13 +232,13 @@ bool foots()
 bool hands()
 {
 	//on
-	if (!setIndicatorsWithCheck(false, true, false))
+	if (!setIndicatorsWithCheck(false, true, false) && exitOnError)
 	{
 		return false;
 	}
 	playOneBeep(freqHand, getDelayOn());
 	//little off
-	if (!setIndicatorsWithCheck(false, false, false))
+	if (!setIndicatorsWithCheck(false, false, false) && exitOnError)
 	{
 		return false;
 	}
@@ -251,13 +253,13 @@ bool hands()
 bool allLights()
 {
 	//on
-	if (!setIndicatorsWithCheck(true, true, true))
+	if (!setIndicatorsWithCheck(true, true, true) && exitOnError)
 	{
 		return false;
 	}
 	playOneBeep(freqAll, getDelayOn());
 	//little off
-	if (!setIndicatorsWithCheck(false, false, false))
+	if (!setIndicatorsWithCheck(false, false, false) && exitOnError)
 	{
 		return false;
 	}
@@ -266,7 +268,7 @@ bool allLights()
 	return true;
 }
 
-const int timesToRepeat = 6;
+int timesToRepeat = 6;
 
 int keyboardBlink()
 {
@@ -293,8 +295,22 @@ int keyboardBlink()
 	return 0;
 }
 
+void menu()
+{
+	printf("Exit on error? 1 - exit, 0 - not exit\n");
+	scanf("%d", &exitOnError);
+
+	printf("Times to repeat [int]: ");
+	scanf("%d", &timesToRepeat);
+
+	printf("Duration coefficient of sound [double]: ");
+	scanf("%lf", &durationCoefficient);
+}
+
 int main()
 {
+	menu();
+
 	int res = keyboardBlink();
 	if (res)
 	{
