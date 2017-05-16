@@ -6,13 +6,13 @@
 #include <dos.h>
 #include <stdio.h>
 
-//-------------------alarm text--------------
-
 typedef unsigned char byte;
 typedef int bool;
 
 #define true 1
 #define false 0
+
+//------------------------------------------------video buffer-------------------------------
 
 struct VIDEO
 {
@@ -76,6 +76,34 @@ void printGoodBad(bool isGoodText)
 		it++;
 	}
 }
+
+//---------------------------------------music-----------------------------------------
+const unsigned long int maxFreq = 1193180;
+
+const int freqHand = 329;
+const int freqFoot = 392;
+const int freqAll = 500;
+
+void playOneBeep(int f, int sleepTime)
+{
+	int delim;
+	outp(0x43, 0xB6);						//10(channel 2) 11(RW lower, than higher) 011(mode 3: with autoloading) 0 (binary)
+	delim = maxFreq / f;
+	outp(0x42, delim % 0x100);
+	outp(0x42, delim / 0x100);
+
+	//включаем динамик
+	delim = inp(0x61);
+	outp(0x61, delim | 0x03);
+
+	delay(sleepTime);
+
+	//выключаем динамик
+	delim = inp(0x61);
+	outp(0x61, delim & 0xFC);
+}
+
+//----------------------------------------task-----------------------------------------
 
 const int timesToTry = 3;
 const int succeedWrite = 0xFA;
@@ -147,21 +175,39 @@ const double oneSleepTimeInMS = 500;
 //must be from 0 to 1. 
 double coefficientOn = 0.7;
 
+//--------------------------------delay times-----------------------------
+double getDelayOn()
+{
+	return (oneSleepTimeInMS * k * coefficientOn);
+}
+
+double getDelayOff()
+{
+	return (oneSleepTimeInMS * k * (1 - coefficientOn));
+}
+
+double getDelayPeriod()
+{
+	return (getDelayOn() + getDelayOff());
+}
+
+//--------------------------------delays-----------------------------------
 void delayOn()
 {
-	delay(oneSleepTimeInMS * k * coefficientOn);
+	delay(getDelayOn());
 }
 
 void delayOff()
 {
-	delay(oneSleepTimeInMS * k * (1 - coefficientOn));
+	delay(getDelayOff());
 }
 
 void delayPeriod()
 {
-	delayOn();
-	delayOff();
+	delay(getDelayPeriod());
 }
+
+//-------------------------------mixed (audio + lights)---------------------
 
 bool foots()
 {
@@ -170,7 +216,7 @@ bool foots()
 	{
 		return false;
 	}
-	delayOn();
+	playOneBeep(freqFoot, getDelayOn());
 	//little off
 	if (!setIndicatorsWithCheck(false, false, false))
 	{
@@ -188,7 +234,7 @@ bool hands()
 	{
 		return false;
 	}
-	delayOn();
+	playOneBeep(freqHand, getDelayOn());
 	//little off
 	if (!setIndicatorsWithCheck(false, false, false))
 	{
@@ -198,6 +244,24 @@ bool hands()
 
 	//sleep one period
 	delayPeriod();
+
+	return true;
+}
+
+bool allLights()
+{
+	//on
+	if (!setIndicatorsWithCheck(true, true, true))
+	{
+		return false;
+	}
+	playOneBeep(freqAll, getDelayOn());
+	//little off
+	if (!setIndicatorsWithCheck(false, false, false))
+	{
+		return false;
+	}
+	delayOff();
 
 	return true;
 }
@@ -223,7 +287,9 @@ int keyboardBlink()
 		}
 	}
 
-	printf("This is the end.\nMelody: Queen - We will rock you\n");
+	allLights();
+
+	printf("This is the end\nMelody: Queen - We will rock you\nMade by AJIOB\n");
 	return 0;
 }
 
