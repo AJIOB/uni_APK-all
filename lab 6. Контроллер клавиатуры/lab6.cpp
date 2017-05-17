@@ -35,10 +35,10 @@ void printRegister(int value)
 {
 	VIDEO far* screen = (VIDEO far *)MK_FP(0xB800, 0);
 	
-	for(int i = 0; i < 2; i++)
+	for(int i = 1; i >= 0; i--)
 	{
 		//get required bit
-		int currBits = ((value & (0x0F << i)) >> i);
+		int currBits = ((value >> (i * 4)) & 0x0F);
 		if (currBits < 10)
 		{
 			screen->symb = currBits + '0';
@@ -295,6 +295,27 @@ int keyboardBlink()
 	return 0;
 }
 
+//------------------------------------------------------2------------------------------
+const int intNum = 0x09;
+
+void interrupt (*old_keyboard_handler) (...);
+void interrupt  new_keyboard_handler(...) { printRegister(inp(0x60)); old_keyboard_handler(); }
+
+void installInt()
+{
+	_disable(); // disable interrupts handling (cli) [Interrupt flag]
+	old_keyboard_handler = getvect(intNum);
+	setvect(intNum, new_keyboard_handler);
+	_enable(); // enable interrupt handling (sti) [Interrupt flag]
+}
+
+void uninstallInt()
+{
+	_disable(); // disable interrupts handling (cli) [Interrupt flag]
+	setvect(intNum, old_keyboard_handler);
+	_enable(); // enable interrupt handling (sti) [Interrupt flag]
+}
+
 void menu()
 {
 	printf("Exit on error? 1 - exit, 0 - not exit\n");
@@ -309,6 +330,8 @@ void menu()
 
 int main()
 {
+	installInt();
+
 	menu();
 
 	int res = keyboardBlink();
@@ -316,5 +339,8 @@ int main()
 	{
 		printf("Error. Program is closing\n");
 	}
+
+	uninstallInt();
+
 	return res;
 }
